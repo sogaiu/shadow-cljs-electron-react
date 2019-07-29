@@ -1,9 +1,5 @@
 ;; shadow-cljs configuration
-{:source-paths
- ["src"]
- 
- :dependencies
- [[reagent "0.8.1" :exclusions [cljsjs/react cljsjs/react-dom]]]
+{:deps true
  
  :builds
  {:main
@@ -18,7 +14,10 @@
   {:target :browser
    :output-dir "app/js"
    :asset-path "js"
-   
+
+   ;; for node stuff to work from browser target
+   :js-options {:js-provider :require}
+
    :modules
    {:renderer {:entries [example.renderer]}}
    

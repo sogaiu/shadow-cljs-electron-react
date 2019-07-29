@@ -1,58 +1,44 @@
 (ns example.main
-  (:require ["electron" :as e :refer (app BrowserWindow)]
-            ["path" :as path]
-            ["os" :as os]
-            ["url" :as url]))
+  (:require
+   ["electron" :as n.e]
+   ["path" :as n.p]
+   ["url" :as n.u]))
 
 (defn start []
-  (js/console.log "renderer - start")
-  (js/console.log "renderer - start")
-  (js/console.log "haha")
-  )
+  (js/console.log "main - start"))
 
 (defn stop []
-  (js/console.log "renderer - stop"))
+  (js/console.log "main - stop"))
 
 (defonce win-ref (atom nil))
 
 (defn create-window []
   (let [win
-        (BrowserWindow.
+        (n.e/BrowserWindow.
          #js {:width 800
               :height 600
               :webPreferences
-              #js { :nodeIntegration true }})
-        
+              #js {:nodeIntegration true}})
         url
-        (url/format #js {:pathname (path/join js/__dirname "index.html")
+        (n.u/format #js {:pathname (n.p/join js/__dirname "index.html")
                          :protocol "file:"
                          :slashes true})]
-    
     (.loadURL win url)
-    
     (.. win -webContents (openDevTools))
-    
-    (.addDevToolsExtension
-     BrowserWindow
-     (path/join
-      (.homedir os)
-      "/Library/Application Support/Google/Chrome/Profile 2/Extensions/fmkadmapgofadopljbjfkapdkoienihi/3.6.0_0"))
-    
     (reset! win-ref win)
-    
     (.on win "closed"
-         (fn [e]
-           (reset! win-ref nil)))))
+      (fn [_]
+        (reset! win-ref nil)))))
 
 (defn maybe-quit []
   (when (not= js/process.platform "darwin")
-    (.quit app)))
+    (.quit n.e/app)))
 
 (defn maybe-create-window []
   (when-not @win-ref
     (create-window)))
 
 (defn main []
-  (.on app "ready" create-window)
-  (.on app "activate" maybe-create-window)
-  (.on app "window-all-closed" maybe-quit))
+  (.on n.e/app "ready" create-window)
+  (.on n.e/app "activate" maybe-create-window)
+  (.on n.e/app "window-all-closed" maybe-quit))
