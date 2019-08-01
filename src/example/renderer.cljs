@@ -47,6 +47,7 @@
            (cca/go-loop []
              (let [ev (cca/<! out-chan)]
                (.write sock ev)
+               (.write sock "\n")
                (recur)))
            (.on rl "line"
               (fn [a-line]
