@@ -38,15 +38,29 @@
   puc/ui-frame :emit
   (fn [v]
     (js/console.log "fx :emit")
-    (let [partly (pr-str v)
-          encoded (p-encode partly)]
+    (let [partly (pr-str v)]
       (cca/put! out-chan partly))))
+
+(defn encoded-vector?
+  [ev]
+  ;; XXX: the call to read-string needs to stay in sync with other parts
+  ;;      of the code (e.g. puc/external-handler aka subscriber), but that's
+  ;;      in some other repository...
+  (let [decoded (ctre/read-string
+                  {:default tagged-literal}
+                  ev)
+        tested (vector? decoded)]
+    (js/console.log (str "decoded: " decoded))
+    (js/console.log (str "vector?: " tested))
+    tested))
 
 ;; subscriber loop
 (cca/go-loop []
   (let [ev (cca/<! in-chan)]
     ;; XXX
     (js/console.log (str "in-chan -> subscriber: " ev))
+    ;; XXX: checking that ev represents a vector
+    (encoded-vector? ev)
     (subscriber ev)
     (recur)))
 
@@ -62,47 +76,42 @@
     ;; prepare tcp server
     (.on server "error"
       (fn [err]
-        (js/console.log (str "error: " err))))
+        (js/console.log (str "server error: " err))))
     (.on server "close"
       (fn []
-        (js/console.log (str "close: "))))
+        (js/console.log (str "server close: "))))
     (.on server "connection"
        (fn [sock]
          (let [rl (n.r/createInterface #js {"input" sock})]
-           (js/console.log "connection: ")
+           (js/console.log "server connection: ")
            (cca/go-loop []
              (let [ev (cca/<! out-chan)
                    ;; XXX
                    _ (js/console.log (str "ev from out-chan: " ev))
                    encoded (p-encode ev)]
-               (js/console.log (str "sending: " encoded))
+               (js/console.log (str "socket sending: " encoded))
                (.write sock encoded)
                (.write sock "\n")
                (recur)))
            (.on rl "line"
               (fn [a-line]
                 ;; XXX
-                (js/console.log (str "received: " a-line))
-                (let [partly (p-decode a-line)
-                      ;; XXX: remove this
-                      decoded (ctre/read-string {:default tagged-literal}
-                                                partly)
-                      _ (js/console.log (str "decoded: " decoded))
-                      _ (js/console.log (str "vector?: " (vector? decoded)))]
+                (js/console.log (str "socket (readline) line: " a-line))
+                (let [partly (p-decode a-line)]
                   ;; XXX
                   (js/console.log (str "partly to in-chan: " partly))
                   (cca/put! in-chan partly))))
            (.on sock "end"
              (fn []
-               (js/console.log "end: ")
+               (js/console.log "socket end: ")
                (.end sock))))))
     ;; start tcp server
     (.listen server
-             port (fn []
-                    (js/console.log (str "listen: " port)))))
+      port (fn []
+             (js/console.log (str "server listen: " port)))))
   ;;
   (n.rd/render (hx/f [puc/JustBrowser])
-               (.getElementById js/document "app")))
+    (.getElementById js/document "app")))
 
 (defn ^:export init
   []
