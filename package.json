@@ -17,6 +17,7 @@
     "react-calendar": "^2.19.0",
     "react-dom": "^16.8.6",
     "react-grid-layout": "^0.16.6",
-    "react-split-pane": "^0.1.87"
+    "react-split-pane": "^0.1.87",
+    "ws": "^7.1.1"
   }
 }
