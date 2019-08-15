@@ -21,6 +21,8 @@
     ;; setup the websocket
     ;; XXX: hack to limit maximum connections to 1
     (set! (.-maxConnections (go/get ws-server "_server")) 1)
+    ;; older versions of node have a 120 sec timeout
+    (.setTimeout (go/get ws-server "_server") 0)
     (.on ws-server "connection"
       (fn connection [ws]
         (js/console.log "ws connection")
