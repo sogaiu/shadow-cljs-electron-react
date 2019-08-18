@@ -29,7 +29,8 @@
         (cca/go-loop []
           (let [ev (cca/<! sock-chan)]
             (js/console.log (str "ws sending: " ev))
-            (.send ws ev)))
+            (.send ws ev)
+            (recur)))
         (.on ws "message"
           (fn message [m]
             (js/console.log (str "ws message: " m))
