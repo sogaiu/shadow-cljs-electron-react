@@ -35,7 +35,8 @@
                  encoded (ee/p-encode ev)]
              (js/console.log (str "socket sending: " encoded))
              (.write sock encoded)
-             (.write sock "\n")))
+             (.write sock "\n")
+             (recur)))
          (let [rl (n.r/createInterface #js {"input" sock})]
            (.on rl "line"
               (fn [a-line]
